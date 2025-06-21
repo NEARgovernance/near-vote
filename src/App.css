@@ -1,3 +1,69 @@
 h3[id] {
   scroll-margin-top: 75px;
 }
+
+.pagination .page-link {
+  color: #000;
+  border-color: #000;
+}
+
+.pagination .page-link:hover,
+.pagination .page-link:focus {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.pagination .page-link.prev-page:hover,
+.pagination .page-link.prev-page:focus,
+.pagination .page-link.prev-page:active,
+.pagination .page-link.next-page:hover,
+.pagination .page-link.next-page:focus,
+.pagination .page-link.next-page:active {
+  background-color: #fff !important;
+  color: #000 !important;
+  box-shadow: none !important;
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary.focus,
+.btn-outline-primary:focus-visible,
+.btn-check:focus + .btn-outline-primary,
+.btn-check.focus + .btn-outline-primary,
+.btn-check:focus-visible + .btn-outline-primary {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.pagination .page-link:focus,
+.pagination .page-link.focus,
+.pagination .page-link:focus-visible {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark:focus,
+.btn-outline-dark.focus {
+  background-color: var(--bs-dark) !important;
+  border-color: var(--bs-dark) !important;
+  color: #fff !important;
+}
+
+.btn-check:focus + .btn-outline-dark,
+.btn-check:focus-visible + .btn-outline-dark {
+  background-color: var(--bs-secondary) !important;
+  border-color: var(--bs-dark) !important;
+  color: #fff !important;
+}
+
+.btn-check:checked + .btn-outline-dark {
+  background-color: var(--bs-dark) !important;
+  border-color: var(--bs-dark) !important;
+  color: #fff !important;
+}

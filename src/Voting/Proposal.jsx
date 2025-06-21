@@ -14,7 +14,9 @@ function voteText(proposal, vote) {
     ? Big(votes.total_venear).div(Big(totalVotes.total_venear))
     : Big(0);
   const numVotes = votes.total_votes;
-  return `${toVeNear(votes.total_venear)} (${percent.mul(100).toFixed(2)}% ${numVotes} votes)`;
+  return `${toVeNear(votes.total_venear)} (${percent
+    .mul(100)
+    .toFixed(2)}% ${numVotes} votes)`;
 }
 
 function timeLeft(proposal) {
@@ -22,7 +24,7 @@ function timeLeft(proposal) {
   const endTime = new Date(
     (parseFloat(proposal.voting_start_time_ns) +
       parseFloat(proposal.voting_duration_ns)) /
-      1e6,
+      1e6
   );
   const timeLeft = endTime - now;
   if (timeLeft < 0) {
@@ -93,11 +95,7 @@ export function Proposal(props) {
 
   return (
     <div>
-      <h3>Proposal #{proposal.id}</h3>
-      <div>
-        <strong>Title:</strong> {proposal.title}
-      </div>
-      <div>
+      <div className="m-1 mb-2">
         <strong>Proposer:</strong>{" "}
         <a
           href={`https://testnet.nearblocks.io/address/${proposal.proposer_id}`}
@@ -105,11 +103,11 @@ export function Proposal(props) {
           <code>{proposal.proposer_id}</code>
         </a>
       </div>
-      <div>
+      <div className="m-1 mb-2">
         <strong>Status:</strong> {proposal.status}
       </div>
       {totalVotingPower && (
-        <div key="stats">
+        <div className="m-1 mb-2" key="stats">
           <div>
             <strong>Voted:</strong>{" "}
             {toVeNear(proposal.total_votes.total_venear)} /{" "}
@@ -134,18 +132,18 @@ export function Proposal(props) {
           </div>
         </div>
       )}
-      <div>
+      <div className="m-1 mb-2">
         <strong>Description:</strong> <p>{proposal.description}</p>
       </div>
-      <div>
+      <div className="m-1 mb-2">
         <strong>Link:</strong>{" "}
         <a href={proposal.link} target="_blank">
           {proposal.link}
         </a>
       </div>
-      <div>
+      <div className="m-1">
         <strong>Voting Options:</strong>
-        <div className="d-grid gap-2 ms-1 mb-2">
+        <div className="d-grid gap-2 ms-1 mt-3 mb-2">
           {proposal.voting_options.map((option, index) => (
             <React.Fragment key={index}>
               <input
@@ -180,9 +178,9 @@ export function Proposal(props) {
           ))}
         </div>
       </div>
-      <div>
+      <div className="m-1">
         <button
-          className="btn btn-success btn-lg"
+          className="btn btn-success m-1"
           disabled={
             loading ||
             !isVotingActive ||
@@ -216,7 +214,7 @@ export function Proposal(props) {
           }}
         >
           {existingVote !== null && activeVote !== existingVote && "CHANGE"}{" "}
-          VOTE with {toVeNear(account?.totalBalance)}
+          Vote with {toVeNear(account?.totalBalance)}
         </button>
       </div>
     </div>

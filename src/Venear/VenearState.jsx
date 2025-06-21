@@ -55,20 +55,20 @@ export function VenearState(props) {
   }, [numAccounts, nonce]);
   return (
     <div className="mb-5">
-      <h3 id="venear">veNEAR Contract State</h3>
+      <h3 id="venear">Vote-Escrowed Token</h3>
       <div>
-        Contract ID: <code>{Constants.VENEAR_CONTRACT_ID}</code>
+        Contract: <code>{Constants.VENEAR_CONTRACT_ID}</code>
       </div>
       <div>
         Total Supply: <code>{toVeNear(totalSupply)}</code>
       </div>
       <div>
-        Total number of Accounts:{" "}
+        Total Accounts:{" "}
         <code>{numAccounts !== null ? numAccounts : `...`}</code>
       </div>
       {accounts ? (
         <div key="accounts">
-          Top 10 Accounts:
+          Top 10 Stakeholders:
           <div>
             {accounts.slice(0, 10).map((account, i) => (
               <div key={i}>

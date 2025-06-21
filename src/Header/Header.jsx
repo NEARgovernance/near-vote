@@ -1,49 +1,46 @@
+import { Link, useLocation } from "react-router-dom";
 import { AccountNavbar } from "../SignIn/AccountNavbar.jsx";
 
-export function Header(props) {
-  return (
-    <header className="sticky-top bg-white d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-      <a
-        href="/"
-        className="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none"
-      >
-        <span className="fs-4">HoS Testnet Demo</span>
-      </a>
+export function Header({ accountId, onCreateProposal }) {
+  const location = useLocation();
 
-      <ul className="nav nav-pills d-flex">
-        <li className="nav-item">
-          <a className="nav-link" href="#account">
+  const isActiveRoute = (path) => {
+    return location.pathname === path;
+  };
+
+  return (
+    <header className="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom shadow-sm w-100">
+      <div className="container-fluid px-4">
+        {/* Brand */}
+        <Link to="/" className="navbar-brand fw-bold text-secondary">
+          🏠 HoS
+        </Link>
+
+        {/* Navigation */}
+        <div className="navbar-nav ms-auto d-flex flex-row align-items-center">
+          <a
+            type="button"
+            className={`btn btn-outline-dark btn-sm me-3 ${
+              isActiveRoute("/community") ? "active" : ""
+            }`}
+            href="/community"
+          >
+            Community
+          </a>
+
+          <a
+            type="button"
+            className={`btn btn-outline-dark btn-sm me-3 ${
+              isActiveRoute("/account") ? "active" : ""
+            }`}
+            href="/account"
+          >
             Account
           </a>
-        </li>
 
-        <li className="nav-item">
-          <a className="nav-link" href="#lockup">
-            Lockup
-          </a>
-        </li>
-
-        <li className="nav-item">
-          <a className="nav-link" href="#venear">
-            veNEAR
-          </a>
-        </li>
-
-        <li className="nav-item">
-          <a className="nav-link" href="#voting">
-            Voting
-          </a>
-        </li>
-
-        {props.accountId && (
-          <li className="nav-item">
-            <a className="nav-link" href="#create-proposal">
-              Create Proposal
-            </a>
-          </li>
-        )}
-        <AccountNavbar />
-      </ul>
+          <AccountNavbar />
+        </div>
+      </div>
     </header>
   );
 }
