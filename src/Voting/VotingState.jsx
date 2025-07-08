@@ -32,7 +32,7 @@ function ProposalCard({ proposal, showInlinePreview = false }) {
           <div className="flex-grow-1">
             <h6 className="card-title mb-1">
               <Link
-                to={`/proposal/${proposal.id}`}
+                to={`/${proposal.id}`}
                 className="text-decoration-none fw-bold"
               >
                 #{proposal.id}: {proposal.title}
@@ -52,7 +52,7 @@ function ProposalCard({ proposal, showInlinePreview = false }) {
           </div>
           <div className="ms-3">
             <Link
-              to={`/proposal/${proposal.id}`}
+              to={`/${proposal.id}`}
               className="btn btn-sm btn-outline-primary"
             >
               View Details
@@ -235,10 +235,7 @@ export function VotingState(props) {
             votingConfig={votingConfig}
           />
           <div className="mt-2">
-            <Link
-              to={`/proposal/${showProposal}`}
-              className="btn btn-primary btn-sm"
-            >
+            <Link to={`/${showProposal}`} className="btn btn-primary btn-sm">
               Details
             </Link>
           </div>
@@ -264,7 +261,7 @@ export function VotingState(props) {
           />
           <div className="mt-2">
             <Link
-              to={`/proposal/${activeProposalId}`}
+              to={`/${activeProposalId}`}
               className="btn btn-primary btn-sm"
             >
               Details

@@ -1,67 +1,12 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNonce } from "../hooks/useNonce.js";
 import { Constants } from "../hooks/constants.js";
 import { useNearView } from "../hooks/useNearView.js";
-import { toNear } from "../hooks/utils.js";
-import React from "react";
+import { toNear, decorateProposal } from "../hooks/utils.js";
+import { ProposalCard } from "../components/ProposalCard.jsx";
 
 const PROPOSALS_PER_PAGE = 10;
 const CHUNK_SIZE = 100;
-
-function ProposalCard({ proposal, compact = false }) {
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      Created: { class: "bg-warning text-dark", text: "Pending" },
-      Rejected: { class: "bg-danger", text: "Rejected" },
-      Approved: { class: "bg-primary", text: "Approved" },
-      Voting: { class: "bg-success", text: "Active" },
-      Finished: { class: "bg-dark", text: "Finished" },
-    };
-
-    const config = statusConfig[status] || {
-      class: "bg-secondary",
-      text: status,
-    };
-    return <span className={`badge ${config.class}`}>{config.text}</span>;
-  };
-
-  return (
-    <div className={`card ${compact ? "mb-2" : "mb-3"}`}>
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-start">
-          <div className="flex-grow-1">
-            <h6 className={`card-title ${compact ? "mb-1" : "mb-2"}`}>
-              <Link
-                to={`/proposal/${proposal.id}`}
-                className="text-decoration-none fw-bold"
-              >
-                #{proposal.id}: {proposal.title}
-              </Link>
-              <span className="ms-2">{getStatusBadge(proposal.status)}</span>
-            </h6>
-            <div className="text-muted small mb-2">
-              by <code>{proposal.proposer_id}</code>
-            </div>
-            {!compact && proposal.description && (
-              <p className="card-text small text-secondary">
-                {proposal.description.length > 120
-                  ? `${proposal.description.substring(0, 120)}...`
-                  : proposal.description}
-              </p>
-            )}
-          </div>
-          <Link
-            to={`/proposal/${proposal.id}`}
-            className="btn btn-sm btn-outline-primary ms-2"
-          >
-            {proposal.status === "Voting" ? "Vote" : "View"}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function HomePage({ accountId, onCreateProposal }) {
   const nonce = useNonce();
@@ -198,10 +143,10 @@ export function HomePage({ accountId, onCreateProposal }) {
   };
 
   return (
-    <div>
+    <div className="container">
       <div className="text-center py-5 mb-2">
-        <h1 className="display-5 mb-2">House of Stake</h1>
-        <p className="lead">Participate in NEAR Governance (on Testnet)</p>
+        <h1 className="display-5 mb-2">DAOs of Stake</h1>
+        <p className="lead">Ecosystem Governance Agencies</p>
 
         {!accountId ? (
           <div
@@ -310,7 +255,9 @@ export function HomePage({ accountId, onCreateProposal }) {
                 {paginatedProposals.map((proposal) => (
                   <ProposalCard
                     key={proposal.id}
-                    proposal={proposal}
+                    proposal={decorateProposal(proposal, {
+                      contractId: Constants.VOTING_CONTRACT_ID,
+                    })}
                     compact={false}
                   />
                 ))}

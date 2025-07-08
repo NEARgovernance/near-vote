@@ -79,7 +79,7 @@ export function CreateProposal(props) {
                 setVotingOptions([...votingOptions, ""]);
               }}
             >
-              ➕Add Option
+              Add Option
             </button>
           </div>
         </div>
@@ -108,7 +108,7 @@ export function CreateProposal(props) {
                         description,
                         link,
                         voting_options: votingOptions.filter(
-                          (f) => f.trim().length > 0,
+                          (f) => f.trim().length > 0
                         ),
                       },
                     },

@@ -1,50 +1,96 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useNearView } from "../hooks/useNearView.js";
-import { useNonce } from "../hooks/useNonce.js";
-import { Constants } from "../hooks/constants.js";
+import { useContractManager } from "../hooks/useContractManager.js";
+import { near } from "../hooks/fastnear.js";
 import { Proposal } from "../Voting/Proposal.jsx";
+import { Constants } from "../hooks/constants.js";
+import { Breadcrumbs } from "../components/Breadcrumbs.jsx";
 
-export function ProposalDetailPage() {
-  const { proposalId } = useParams();
-  const nonce = useNonce();
+export function ProposalDetailPage({ contractId }) {
+  const params = useParams();
+  const location = useLocation();
+  const contractManager = useContractManager();
+
+  const [proposal, setProposal] = useState(null);
+  const [votingConfig, setVotingConfig] = useState(null);
+  const [resolvedContractId, setResolvedContractId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Validate proposalId
-  const parsedProposalId = parseInt(proposalId, 10);
+  const segments = location.pathname.split("/").filter(Boolean);
+  const lastSegment = segments[segments.length - 1];
+  const parsedProposalId = parseInt(lastSegment, 10);
+
   if (isNaN(parsedProposalId) || parsedProposalId < 0) {
     return <Navigate to="/" replace />;
   }
 
-  // Fetch voting config
-  const votingConfig = useNearView({
-    initialValue: null,
-    contractId: Constants.VOTING_CONTRACT_ID,
-    methodName: "get_config",
-    args: {},
-    extraDeps: [nonce],
-    errorValue: "err",
-  });
+  const isMainVotingContract =
+    segments[0] === "proposal" && segments.length === 2;
 
-  // Fetch specific proposal
-  const proposal = useNearView({
-    initialValue: null,
-    contractId: Constants.VOTING_CONTRACT_ID,
-    methodName: "get_proposal",
-    args: { proposal_id: parsedProposalId },
-    extraDeps: [nonce],
-    errorValue: null,
-  });
+  const backPath =
+    segments.length > 1 ? "/" + segments.slice(0, -1).join("/") : "/";
+  const exitPath = isMainVotingContract ? "/" : backPath;
 
   useEffect(() => {
-    if (proposal !== null) {
-      setLoading(false);
-      if (!proposal) {
-        setError("Proposal not found");
+    const fetchData = async () => {
+      try {
+        const contractSegments = segments.slice(0, -1);
+        let contractIdToUse = null;
+
+        if (isMainVotingContract) {
+          contractIdToUse = contractId || Constants.VOTING_CONTRACT_ID;
+        } else if (contractSegments.length > 0) {
+          contractIdToUse = contractSegments.reverse().join(".");
+          if (!/\.(near|testnet)$/.test(contractIdToUse)) {
+            contractIdToUse +=
+              Constants.NETWORK_ID === "mainnet" ? ".near" : ".testnet";
+          }
+        }
+
+        console.log("resolvedContractId:", contractIdToUse);
+        setResolvedContractId(contractIdToUse);
+
+        const contract = await contractManager.switchContractByPath(
+          contractIdToUse
+            .replace(/\.?(near|testnet)$/, "")
+            .split(".")
+            .reverse()
+        );
+
+        const [proposalData, config] = await Promise.all([
+          near.view({
+            contractId: contract.contractId,
+            methodName: "get_proposal",
+            args: { proposal_id: parsedProposalId },
+          }),
+          near.view({
+            contractId: contract.contractId,
+            methodName: "get_config",
+            args: {},
+          }),
+        ]);
+
+        if (!proposalData) {
+          setError("Proposal not found");
+        } else {
+          setProposal({ ...proposalData, id: parsedProposalId });
+          setVotingConfig(config);
+        }
+      } catch (err) {
+        console.error("Failed to fetch proposal:", {
+          err,
+          resolvedContractId: contractIdToUse,
+          parsedProposalId,
+        });
+        setError("Proposal not found or contract unavailable.");
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [proposal]);
+    };
+
+    fetchData();
+  }, [location.pathname, contractManager, contractId]);
 
   if (loading) {
     return (
@@ -59,48 +105,26 @@ export function ProposalDetailPage() {
   if (error || !proposal) {
     return (
       <div className="alert alert-danger" role="alert">
-        <h4 className="alert-heading">Proposal Not Found</h4>
-        <p>The proposal with ID {proposalId} could not be found.</p>
+        <h4 className="alert-heading">Proposal {parsedProposalId} Not Found</h4>
         <hr />
         <Link to="/" className="btn btn-primary">
-          ← Back to Home
+          ← exit
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="mt-5 mb-5">
-      <nav aria-label="breadcrumb">
-        <ol className="breadcrumb">
-          <li className="breadcrumb-item">
-            <Link
-              to="/"
-              style={{
-                fontWeight: "bold",
-                color: "gray",
-                textDecoration: "none",
-              }}
-            >
-              Home
-            </Link>
-          </li>
-          <li className="breadcrumb-item active" aria-current="page">
-            Proposal #{proposalId}
-          </li>
-        </ol>
-      </nav>
-
+    <div className="container mt-5">
+      <Breadcrumbs />
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>{proposal.title}</h2>
-        <div>
-          <Link to="/" className="btn btn-outline-secondary">
-            ← Back to All Proposals
-          </Link>
-        </div>
       </div>
-
-      <Proposal proposal={proposal} votingConfig={votingConfig} />
+      <Proposal
+        proposal={proposal}
+        votingConfig={votingConfig}
+        votingContractId={resolvedContractId}
+      />
     </div>
   );
 }

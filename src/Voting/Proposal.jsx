@@ -38,17 +38,22 @@ function timeLeft(proposal) {
 }
 
 export function Proposal(props) {
-  const { proposal, votingConfig } = props;
+  const { proposal, votingConfig, votingContractId } = props; // Add votingContractId prop
   const accountId = useAccount();
   const nonce = useNonce();
   const [loading, setLoading] = useState(false);
   const isVotingActive = proposal.status === "Voting";
   const [activeVote, setActiveVote] = useState(null);
 
+  // Use the passed contract ID, fallback to default if not provided
+  const contractId = votingContractId || Constants.VOTING_CONTRACT_ID;
+
+  console.log("Using voting contract ID:", contractId);
+
   const existingVote = useNearView({
     initialValue: null,
     condition: ({ extraDeps }) => !!extraDeps[1],
-    contractId: Constants.VOTING_CONTRACT_ID,
+    contractId: contractId, // Use dynamic contract ID
     methodName: "get_vote",
     args: {
       account_id: accountId,
@@ -62,25 +67,26 @@ export function Proposal(props) {
     proposal?.snapshot_and_state?.snapshot?.block_height;
   const totalVotingPower = proposal?.snapshot_and_state?.total_venear;
   const snapshotLength = proposal?.snapshot_and_state?.snapshot?.length;
+
   let [merkleProof, vAccount] = useNearView({
     initialValue: [null, null],
-    condition: ({ extraDeps: [nonce, accountId, snapshotBlockHeight] }) =>
-      !!accountId && !!snapshotBlockHeight,
+    condition: ({ extraDeps: [nonce, accountId] }) => !!accountId, // Test without blockId first
     contractId: Constants.VENEAR_CONTRACT_ID,
     methodName: "get_proof",
     args: {
       account_id: accountId,
     },
-    blockId: snapshotBlockHeight,
-    extraDeps: [nonce, accountId, snapshotBlockHeight],
+    extraDeps: [nonce, accountId],
     errorValue: [null, null],
   });
+
   // Temp fix for older contract version
   if (vAccount && vAccount.Current) {
     vAccount = {
       V0: vAccount.Current,
     };
   }
+
   const account = vAccount?.V0 ? processAccount(vAccount?.V0) : null;
 
   useEffect(() => {
@@ -105,6 +111,9 @@ export function Proposal(props) {
       </div>
       <div className="m-1 mb-2">
         <strong>Status:</strong> {proposal.status}
+      </div>
+      <div className="m-1 mb-2">
+        <strong>Contract:</strong> <code>{contractId}</code>
       </div>
       {totalVotingPower && (
         <div className="m-1 mb-2" key="stats">
@@ -137,7 +146,7 @@ export function Proposal(props) {
       </div>
       <div className="m-1 mb-2">
         <strong>Link:</strong>{" "}
-        <a href={proposal.link} target="_blank">
+        <a href={proposal.link} target="_blank" rel="noopener noreferrer">
           {proposal.link}
         </a>
       </div>
@@ -178,6 +187,7 @@ export function Proposal(props) {
           ))}
         </div>
       </div>
+
       <div className="m-1">
         <button
           className="btn btn-success m-1"
@@ -188,33 +198,48 @@ export function Proposal(props) {
             activeVote === null ||
             !account ||
             account?.totalBalance.eq(0) ||
-            existingVote === activeVote
+            existingVote === activeVote ||
+            !merkleProof ||
+            !vAccount
           }
           onClick={async () => {
             setLoading(true);
-            const res = await near.sendTx({
-              receiverId: Constants.VOTING_CONTRACT_ID,
-              actions: [
-                near.actions.functionCall({
-                  methodName: "vote",
-                  gas: $$`100 Tgas`,
-                  deposit: votingConfig.vote_storage_fee,
-                  args: {
-                    proposal_id: proposal.id,
-                    vote: activeVote,
-                    merkle_proof: merkleProof,
-                    v_account: vAccount,
-                  },
-                }),
-              ],
-              waitUntil: "INCLUDED",
-            });
-            console.log("vote TX", res);
-            setLoading(false);
+            try {
+              const res = await near.sendTx({
+                receiverId: contractId, // Use dynamic contract ID
+                actions: [
+                  near.actions.functionCall({
+                    methodName: "vote",
+                    gas: "100000000000000", // Fixed gas format
+                    deposit: votingConfig.vote_storage_fee,
+                    args: {
+                      proposal_id: proposal.id,
+                      vote: activeVote,
+                      merkle_proof: merkleProof,
+                      v_account: vAccount,
+                    },
+                  }),
+                ],
+                waitUntil: "INCLUDED",
+              });
+              console.log("vote TX", res);
+            } catch (error) {
+              console.error("Error voting:", error);
+              alert(`Failed to vote: ${error.message}`);
+            } finally {
+              setLoading(false);
+            }
           }}
         >
+          {loading && (
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          )}
           {existingVote !== null && activeVote !== existingVote && "CHANGE"}{" "}
-          Vote with {toVeNear(account?.totalBalance)}
+          Vote with {account ? toVeNear(account.totalBalance) : "0"}
         </button>
       </div>
     </div>

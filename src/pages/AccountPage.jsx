@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAccount } from "../hooks/useAccount.js";
+import { Breadcrumbs } from "../components/Breadcrumbs.jsx";
 import { Constants } from "../hooks/constants.js";
 import { useState } from "react";
 import { useNearView } from "../hooks/useNearView.js";
@@ -194,19 +195,12 @@ export function AccountPage({ accountId }) {
 
   if (!accountId) {
     return (
-      <div className="mt-5">
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <Link to="/">Home</Link>
-            </li>
-            <li className="breadcrumb-item active" aria-current="page">
-              Account
-            </li>
-          </ol>
-        </nav>
+      <div className="mt-5 mb-5">
+        <Breadcrumbs
+          trail={[{ label: "Home", href: "/" }, { label: "Account" }]}
+        />
 
-        <div className="alert alert-warning" role="alert">
+        <div className="alert alert-warning mt-3 mb-4" role="alert">
           <h4 className="alert-heading">Sign In Required</h4>
           <p>Please sign in to view and manage your account.</p>
         </div>
@@ -216,27 +210,9 @@ export function AccountPage({ accountId }) {
 
   return (
     <div className="mt-5 mb-5">
-      <div className="d-flex justify-content-between align-items-right mb-4">
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <Link
-                to="/"
-                style={{
-                  fontWeight: "bold",
-                  color: "gray",
-                  textDecoration: "none",
-                }}
-              >
-                Home
-              </Link>
-            </li>
-            <li className="breadcrumb-item active" aria-current="page">
-              Account
-            </li>
-          </ol>
-        </nav>
-      </div>
+      <Breadcrumbs
+        trail={[{ label: "Home", href: "/" }, { label: "Account" }]}
+      />
 
       {/* Account Information */}
       <div className="row mt-3 mb-4">

@@ -6,7 +6,7 @@ export function SignInNavbar(props) {
     <>
       <li className="nav-item">
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-secondary btn-sm"
           onClick={() =>
             requestSignIn({ contractId: Constants.VENEAR_CONTRACT_ID })
           }

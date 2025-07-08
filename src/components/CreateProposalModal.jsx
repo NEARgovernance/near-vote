@@ -238,7 +238,7 @@ export function CreateProposalModal({ show, onClose, accountId }) {
                       onClick={addOption}
                       disabled={loading || votingOptions.length >= 8}
                     >
-                      ➕ Add Option
+                      Add Option
                     </button>
                     <small className="text-muted">
                       {

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useNearView } from "../hooks/useNearView.js";
+import { Breadcrumbs } from "../components/Breadcrumbs.jsx";
 import { Constants } from "../hooks/constants.js";
 import { useNonce } from "../hooks/useNonce.js";
 import { processAccount, toVeNear } from "../hooks/utils.js";
@@ -139,27 +140,9 @@ export function CommunityPage() {
 
   return (
     <div className="mt-5 mb-5">
-      <div className="d-flex justify-content-between align-items-right mb-4">
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <Link
-                to="/"
-                style={{
-                  fontWeight: "bold",
-                  color: "gray",
-                  textDecoration: "none",
-                }}
-              >
-                Home
-              </Link>
-            </li>
-            <li className="breadcrumb-item active" aria-current="page">
-              Community
-            </li>
-          </ol>
-        </nav>
-      </div>
+      <Breadcrumbs
+        trail={[{ label: "Home", href: "/" }, { label: "Community" }]}
+      />
 
       {/* Contract Overview */}
       <div className="row">
