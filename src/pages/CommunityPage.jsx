@@ -343,7 +343,7 @@ export function CommunityPage() {
                       <th scope="row">{startIndex + i + 1}</th>
                       <td>
                         <a
-                          href={`https://testnet.nearblocks.io/address/${account.accountId}`}
+                          href={`https://nearblocks.io/address/${account.accountId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-decoration-none"

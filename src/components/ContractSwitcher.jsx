@@ -189,7 +189,7 @@ export function ContractSwitcher({ compact = false }) {
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="Contract Address (e.g. vote.custom.testnet)"
+                  placeholder="Contract Address (e.g. vote.govai.near)"
                   value={customAddress}
                   onChange={(e) => setCustomAddress(e.target.value)}
                   disabled={loading}

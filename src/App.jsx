@@ -14,8 +14,7 @@ import { PollsPage } from "./pages/PollsPage.jsx";
 import { DynamicRoute } from "./components/DynamicRoute.jsx";
 import { Constants } from "./hooks/constants.js";
 
-const DEFAULT_CONTRACT_ID =
-  Constants.VOTING_CONTRACT_ID || "vote.hos03.testnet";
+const DEFAULT_CONTRACT_ID = Constants.VOTING_CONTRACT_ID || "vote.govai.near";
 
 function App() {
   const accountId = useAccount();

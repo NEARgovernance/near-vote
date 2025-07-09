@@ -4,11 +4,11 @@ window.near = near;
 window.$$ = near.utils.convertUnit;
 
 near.config({
-  networkId: "testnet", // or "mainnet"
+  networkId: "mainnet", // or "testnet"
 });
 
 export function getNetworkId() {
-  return near._config?.networkId || "testnet";
+  return near._config?.networkId || "mainnet";
 }
 
 export { near };

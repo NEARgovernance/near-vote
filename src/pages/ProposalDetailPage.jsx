@@ -1,7 +1,7 @@
 import { useParams, Link, Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useContractManager } from "../hooks/useContractManager.js";
-import { near } from "../hooks/fastnear.js";
+import { near, getNetworkId } from "../hooks/fastnear.js";
 import { Proposal } from "../Voting/Proposal.jsx";
 import { Constants } from "../hooks/constants.js";
 import { Breadcrumbs } from "../components/Breadcrumbs.jsx";
@@ -34,30 +34,53 @@ export function ProposalDetailPage({ contractId }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      let contractIdToUse = null; // Move outside try block
+
       try {
         const contractSegments = segments.slice(0, -1);
-        let contractIdToUse = null;
 
         if (isMainVotingContract) {
           contractIdToUse = contractId || Constants.VOTING_CONTRACT_ID;
         } else if (contractSegments.length > 0) {
           contractIdToUse = contractSegments.reverse().join(".");
           if (!/\.(near|testnet)$/.test(contractIdToUse)) {
+            // Use network-based suffix from fastnear hook
             contractIdToUse +=
-              Constants.NETWORK_ID === "mainnet" ? ".near" : ".testnet";
+              getNetworkId() === "mainnet" ? ".near" : ".testnet";
           }
         }
 
+        console.log("Network ID:", getNetworkId());
         console.log("resolvedContractId:", contractIdToUse);
         setResolvedContractId(contractIdToUse);
 
-        const contract = await contractManager.switchContractByPath(
-          contractIdToUse
-            .replace(/\.?(near|testnet)$/, "")
-            .split(".")
-            .reverse()
-        );
+        // Use ContractManager with the full contract ID as a single path element
+        let contract;
+        try {
+          // Pass the full contract ID as single element - ContractManager will use it directly
+          contract = await contractManager.switchContractByPath([
+            contractIdToUse,
+          ]);
+        } catch (contractError) {
+          // If testnet contract doesn't exist, fall back to mainnet
+          if (
+            contractError.message?.includes("NOT FOUND") &&
+            contractIdToUse.endsWith(".testnet")
+          ) {
+            console.log("Testnet contract not found, falling back to mainnet");
+            contractIdToUse = contractIdToUse.replace(".testnet", ".near");
+            setResolvedContractId(contractIdToUse);
 
+            // Try again with mainnet contract
+            contract = await contractManager.switchContractByPath([
+              contractIdToUse,
+            ]);
+          } else {
+            throw contractError;
+          }
+        }
+
+        // Use the contract from ContractManager
         const [proposalData, config] = await Promise.all([
           near.view({
             contractId: contract.contractId,
@@ -80,7 +103,7 @@ export function ProposalDetailPage({ contractId }) {
       } catch (err) {
         console.error("Failed to fetch proposal:", {
           err,
-          resolvedContractId: contractIdToUse,
+          resolvedContractId: contractIdToUse, // Now this is defined
           parsedProposalId,
         });
         setError("Proposal not found or contract unavailable.");

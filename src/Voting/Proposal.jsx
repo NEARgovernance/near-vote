@@ -5,11 +5,14 @@ import { useNearView } from "../hooks/useNearView.js";
 import { Constants } from "../hooks/constants.js";
 import { useNonce } from "../hooks/useNonce.js";
 import { processAccount, toVeNear } from "../hooks/utils.js";
+import { near } from "../hooks/fastnear.js";
 import Big from "big.js";
 
 function voteText(proposal, vote) {
   const totalVotes = proposal.total_votes;
   const votes = proposal.votes[vote];
+
+  // Protect against division by zero
   const percent = Big(totalVotes.total_venear).gt(0)
     ? Big(votes.total_venear).div(Big(totalVotes.total_venear))
     : Big(0);
@@ -68,14 +71,16 @@ export function Proposal(props) {
   const totalVotingPower = proposal?.snapshot_and_state?.total_venear;
   const snapshotLength = proposal?.snapshot_and_state?.snapshot?.length;
 
+  // Use CURRENT proofs (no blockId) - historical block is garbage collected
   let [merkleProof, vAccount] = useNearView({
     initialValue: [null, null],
-    condition: ({ extraDeps: [nonce, accountId] }) => !!accountId, // Test without blockId first
+    condition: ({ extraDeps: [nonce, accountId] }) => !!accountId,
     contractId: Constants.VENEAR_CONTRACT_ID,
     methodName: "get_proof",
     args: {
       account_id: accountId,
     },
+    // Remove blockId - use current state instead of historical
     extraDeps: [nonce, accountId],
     errorValue: [null, null],
   });
@@ -89,6 +94,11 @@ export function Proposal(props) {
 
   const account = vAccount?.V0 ? processAccount(vAccount?.V0) : null;
 
+  // Debug logging
+  console.log("Snapshot block height:", snapshotBlockHeight);
+  console.log("CURRENT Merkle proof:", merkleProof);
+  console.log("CURRENT vAccount:", vAccount);
+
   useEffect(() => {
     setActiveVote(null);
   }, [proposal]);
@@ -101,39 +111,48 @@ export function Proposal(props) {
 
   return (
     <div>
-      <div className="m-1 mb-2">
+      <h3>Proposal #{proposal.id}</h3>
+      <div>
+        <strong>Title:</strong> {proposal.title}
+      </div>
+      <div>
         <strong>Proposer:</strong>{" "}
         <a
-          href={`https://testnet.nearblocks.io/address/${proposal.proposer_id}`}
+          href={`https://nearblocks.io/address/${proposal.proposer_id}`} // Use mainnet nearblocks
         >
           <code>{proposal.proposer_id}</code>
         </a>
       </div>
-      <div className="m-1 mb-2">
+      <div>
         <strong>Status:</strong> {proposal.status}
       </div>
-      <div className="m-1 mb-2">
+      <div>
         <strong>Contract:</strong> <code>{contractId}</code>
       </div>
       {totalVotingPower && (
-        <div className="m-1 mb-2" key="stats">
+        <div key="stats">
           <div>
             <strong>Voted:</strong>{" "}
             {toVeNear(proposal.total_votes.total_venear)} /{" "}
             {toVeNear(totalVotingPower)} (
-            {Big(proposal.total_votes.total_venear)
-              .div(Big(totalVotingPower))
-              .mul(100)
-              .toFixed(2)}
+            {/* Protect against division by zero */}
+            {Big(totalVotingPower).gt(0)
+              ? Big(proposal.total_votes.total_venear)
+                  .div(Big(totalVotingPower))
+                  .mul(100)
+                  .toFixed(2)
+              : "0.00"}
             %)
           </div>
           <div>
             <strong>Accounts voted:</strong> {proposal.total_votes.total_votes}{" "}
-            / {snapshotLength} (
-            {(
-              (proposal.total_votes.total_votes * 100) /
-              snapshotLength
-            ).toFixed(2)}
+            / {snapshotLength} ({/* Protect against division by zero */}
+            {snapshotLength > 0
+              ? (
+                  (proposal.total_votes.total_votes * 100) /
+                  snapshotLength
+                ).toFixed(2)
+              : "0.00"}
             %)
           </div>
           <div>
@@ -141,18 +160,18 @@ export function Proposal(props) {
           </div>
         </div>
       )}
-      <div className="m-1 mb-2">
+      <div>
         <strong>Description:</strong> <p>{proposal.description}</p>
       </div>
-      <div className="m-1 mb-2">
+      <div>
         <strong>Link:</strong>{" "}
         <a href={proposal.link} target="_blank" rel="noopener noreferrer">
           {proposal.link}
         </a>
       </div>
-      <div className="m-1">
+      <div>
         <strong>Voting Options:</strong>
-        <div className="d-grid gap-2 ms-1 mt-3 mb-2">
+        <div className="d-grid gap-2 ms-1 mb-2">
           {proposal.voting_options.map((option, index) => (
             <React.Fragment key={index}>
               <input
@@ -187,10 +206,9 @@ export function Proposal(props) {
           ))}
         </div>
       </div>
-
-      <div className="m-1">
+      <div>
         <button
-          className="btn btn-success m-1"
+          className="btn btn-success btn-lg"
           disabled={
             loading ||
             !isVotingActive ||
@@ -210,7 +228,7 @@ export function Proposal(props) {
                 actions: [
                   near.actions.functionCall({
                     methodName: "vote",
-                    gas: "100000000000000", // Fixed gas format
+                    gas: $$`100 Tgas`,
                     deposit: votingConfig.vote_storage_fee,
                     args: {
                       proposal_id: proposal.id,
@@ -239,7 +257,7 @@ export function Proposal(props) {
             ></span>
           )}
           {existingVote !== null && activeVote !== existingVote && "CHANGE"}{" "}
-          Vote with {account ? toVeNear(account.totalBalance) : "0"}
+          VOTE with {account ? toVeNear(account?.totalBalance) : "0"}
         </button>
       </div>
     </div>

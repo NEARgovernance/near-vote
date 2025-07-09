@@ -165,7 +165,7 @@ export function ContractSelector({ selectedContractIds, onSelectionChange }) {
         <input
           type="text"
           className="form-control form-control-sm m-2 mt-3"
-          placeholder="example.ballotbox.testnet"
+          placeholder="example.metavote.near"
           value={manualInput}
           onChange={(e) => setManualInput(e.target.value)}
         />

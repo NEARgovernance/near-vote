@@ -22,7 +22,7 @@ export function useProposals(selectedContractIds = []) {
               status: ["Created", "Voting", "Approved", "Rejected"][
                 Math.floor(Math.random() * 4)
               ],
-              proposer_id: "user.testnet",
+              proposer_id: "you.near",
               created_at: Date.now() - Math.random() * 86400000 * 7,
             },
             contract
